@@ -48,10 +48,14 @@ public class Main {
                 break;
             } else {
                 if (n.equals("1")) {
-                    System.out.println("input city name(Chinese) to get three days weather");
-                    String city = sc.nextLine();
-                    for (int i = 0; i < 3; i++) {
-                        System.out.println(findWea(city).get(i).toString());
+                    //startpages means page index(start from 1), rows means number of lines per page
+                    System.out.println("input city name(Chinese),startpage,rows to get three days weather");
+                    String city = sc.next();
+                    int startpage=sc.nextInt();
+                    int rows=sc.nextInt();
+                    List<CityWea> list=findWea(city,startpage,rows);
+                    for (CityWea cityWea : list) {
+                        System.out.println(cityWea.toString());
                     }
 
                 } else if (n.equals("2")) {
@@ -222,8 +226,8 @@ public class Main {
     /**
      * search three days weathers of one city
      */
-    public static List<CityWea> findWea(String cityname) {
-        String sql = "select l.*,w.fxDate,w.Max,w.Min,w.Day from location as l,weather as w where l.id=w.id and l.name=?";
+    public static List<CityWea> findWea(String cityname,int startpage,int rows) {
+        String sql = "select l.*,w.fxDate,w.Max,w.Min,w.Day from location as l,weather as w where l.id=w.id and l.name=? limit ?,?";
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs;
@@ -233,6 +237,10 @@ public class Main {
             conn = Release.getConnection();
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, cityname);
+            //implement select by page
+            int start = (startpage-1)*rows;
+            pstmt.setInt(2, start);
+            pstmt.setInt(3, rows);
             rs = pstmt.executeQuery();
             while (rs.next()) {
                 String id = rs.getString("id");
